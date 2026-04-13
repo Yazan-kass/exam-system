@@ -1,0 +1,108 @@
+# 🧠 Exam System
+
+A modern web-based exam management system that allows teachers to create, manage, and organize exams, while students can participate and track their progress.
+
+---
+
+## 🚀 Features
+
+* Create and manage question banks
+* Organize exams with multiple questions
+* Clean and responsive user interface
+* Real-time interaction with the system
+* Role-based structure (Teacher / Student) *(if implemented)*
+
+---
+
+## 🛠 Tech Stack
+
+* **Frontend:** Next.js, React, TypeScript
+* **Styling:** Tailwind CSS, ShadCN UI
+* **State Management:** React Context / Hooks
+* **Backend / Services:** Firebase *(if used)*
+
+---
+
+## 📸 Screenshots
+
+> Add screenshots here (Dashboard, Exam Page, Question Form)
+
+---
+
+## 🌐 Live Demo
+
+👉 [View Live Project](https://your-project.vercel.app)
+
+---
+
+## ⚙️ Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/Yazan-kass/exam-system.git
+cd exam-system
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the development server:
+
+```bash
+npm run dev
+```
+
+---
+
+## 🔑 Environment Variables
+
+Create a `.env.local` file and add:
+
+```env
+NEXT_PUBLIC_API_KEY=your_key
+NEXT_PUBLIC_AUTH_DOMAIN=your_domain
+```
+
+*(Update based on your actual config — especially if using Firebase)*
+
+---
+
+## 📂 Project Structure
+
+```
+src/
+ ├── components/
+ ├── features/
+ ├── services/
+ ├── hooks/
+ ├── types/
+```
+
+---
+
+## 📌 Future Improvements
+
+* Add authentication system (Teacher / Student roles)
+* Implement timed exams
+* Auto grading system
+* Performance analytics dashboard
+* Question randomization
+
+---
+
+## 👨‍💻 Author
+
+**Yazan Abu Alkas**
+
+* Software Engineer & Frontend Developer
+* [LinkedIn](https://www.linkedin.com/in/yazan-abu-al-kass/)
+
+---
+
+## 📄 License
+
+This project is open-source and available under the MIT License.
