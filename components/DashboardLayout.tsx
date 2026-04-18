@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -12,7 +13,6 @@ import {
   Settings, 
   LogOut, 
   Menu, 
-  X, 
   Bell, 
   Search,
   ChevronLeft
@@ -27,7 +27,7 @@ import { signOut } from "firebase/auth";
 interface NavItem {
   label: string;
   href: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 const STUDENT_NAV: NavItem[] = [
@@ -164,11 +164,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     {role === "teacher" ? "أستاذ" : "طالب"}
                   </p>
                 </div>
-                <div className="size-11 rounded-xl overflow-hidden border-2 border-primary/10 shadow-sm ring-2 ring-primary/5">
-                  <img 
+                <div className="size-11 rounded-xl overflow-hidden border-2 border-primary/10 shadow-sm ring-2 ring-primary/5 relative">
+                  <Image 
                     src={user?.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} 
                     alt="Profile" 
-                    className="size-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </div>
               </div>

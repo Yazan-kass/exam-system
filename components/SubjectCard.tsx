@@ -12,6 +12,7 @@ interface SubjectCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   isTeacher?: boolean;
+   primaryAction: string;
 }
 
 export function SubjectCard({

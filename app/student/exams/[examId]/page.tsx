@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card";
-import { Progress } from "../../../../components/ui/progress";
+import { Card, CardContent } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
 import { Skeleton } from "../../../../components/ui/skeleton";
 import {
@@ -18,13 +17,11 @@ import {
   CheckCircle2,
   FileQuestion,
 } from "lucide-react";
-import { SectionHeader } from "../../../../components/SectionHeader";
-import { StatusBadge } from "../../../../components/StatusBadge";
 import { LoadingButton } from "../../../../components/LoadingButton";
 import { EmptyState } from "../../../../components/EmptyState";
 
 import { useAuth } from "../../../../context/AuthContext";
-import { examService, ExamDTO, QuestionDTO } from "../../../../lib/services/exam.service";
+import { examService } from "../../../../lib/services/exam.service";
 import { studentService } from "../../../../lib/services/student.service";
 import { useExamSession } from "../../hooks/useExamSession";
 import { useTimer } from "../../hooks/useTimer";
@@ -73,50 +70,35 @@ export default function DynamicExamPage() {
   }, [examId, user?.uid]);
 
   const { data, isLoading: dataLoading, error: fetchError } = useFetch(fetchExamFullData, [examId, user?.uid]);
-
-  // Session & Timer hooks (Client side logic)
   const { answers, updateAnswer, sessionLoading } = useExamSession(user?.uid || "", examId);
-
-  // Update current time for waiting room
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleAutoSubmit = useCallback(() => {
-    if (!isSubmitting) handleSubmit();
-  }, [isSubmitting]);
 
   const exam = data?.exam;
   const questions = data?.questions || [];
   const existingResult = data?.existingResult;
 
-  const { timeLeft, formatTime, startTimer, stopTimer, isActive: timerActive } = useTimer(
+  // Use a ref to break the circular dependency between handleSubmit and useTimer
+  const submitRef = useRef<(() => Promise<void>) | null>(null);
+  
+  const handleAutoSubmit = useCallback(() => {
+    if (submitRef.current) {
+      submitRef.current();
+    }
+  }, []);
+
+  const { formatTime, startTimer, stopTimer, isActive: timerActive } = useTimer(
     (exam?.duration || 20) * 60,
     handleAutoSubmit
   );
 
-  const isStarted = exam ? currentTime >= exam.startTime : false;
-  const isEnded = exam ? currentTime > exam.endTime : false;
-
-  // Professional Timer triggering
-  useEffect(() => {
-    if (isStarted && !isEnded && !existingResult && !dataLoading && !timerActive && !fetchError) {
-      startTimer();
-    }
-  }, [isStarted, isEnded, existingResult, dataLoading, timerActive, startTimer, fetchError]);
-
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (isSubmitting || questions.length === 0 || !user || !profile || !exam) return;
     setIsSubmitting(true);
     
-    // Offline Backup Guard
     try {
       localStorage.setItem(`offline_backup_${exam.id}`, JSON.stringify(answers));
-    } catch(e) { console.error("Backup failed", e) }
+    } catch { /* Suppress backup failures */ }
 
     try {
-      // Auto-grading logic (Domain Logic)
       let score = 0;
       questions.forEach((q) => {
         if (answers[q.id] === q.correctAnswer) score += 1;
@@ -136,20 +118,39 @@ export default function DynamicExamPage() {
         status: "مكتمل"
       });
       
-      // Notify System
-      await notificationService.sendExamSuccessNotification(user!.uid, exam.title, score, questions.length);
+      await notificationService.sendExamSuccessNotification(user.uid, exam.title, score, questions.length);
 
-      // Clean backup
-      try { localStorage.removeItem(`offline_backup_${exam.id}`); } catch(e) {}
+      try { localStorage.removeItem(`offline_backup_${exam.id}`); } catch {}
 
       stopTimer();
       router.push(`/student/results/${resultId}`);
     } catch (error) {
       const appErr = handleError(error);
-      alert(appErr.message); // Standard feedback
+      alert(appErr.message);
       setIsSubmitting(false);
     }
-  };
+  }, [answers, exam, formatTime, isSubmitting, profile, questions, router, stopTimer, user]);
+
+  useEffect(() => {
+    submitRef.current = handleSubmit;
+  }, [handleSubmit]);
+
+  // Update current time for waiting room
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+
+  const isStarted = exam ? currentTime >= exam.startTime : false;
+  const isEnded = exam ? currentTime > exam.endTime : false;
+
+  // Professional Timer triggering
+  useEffect(() => {
+    if (isStarted && !isEnded && !existingResult && !dataLoading && !timerActive && !fetchError) {
+      startTimer();
+    }
+  }, [isStarted, isEnded, existingResult, dataLoading, timerActive, startTimer, fetchError]);
 
   if (authLoading || (role && role !== "student")) return null;
   if (!isMounted) return null;
@@ -274,21 +275,20 @@ export default function DynamicExamPage() {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <SectionHeader 
-        title={exam.title} 
-        description={
-            <div className="flex items-center gap-4 mt-2">
-                <span className="flex items-center gap-2 bg-surface-container-low px-4 py-1.5 rounded-full text-xs font-black">
-                    <TeacherIcon className="size-4 text-primary" />
-                    المعلم: {exam.teacherName}
-                </span>
-                <span className="flex items-center gap-2 bg-surface-container-low px-4 py-1.5 rounded-full text-xs font-black">
-                    <FileQuestion className="size-4 text-primary" />
-                    {questions.length} سؤال
-                </span>
-            </div>
-        }
-      >
+      <div className="flex flex-col md:flex-row items-center justify-between gap-8 py-4">
+        <div className="space-y-3">
+             <h1 className="text-5xl font-black text-on-surface tracking-tighter">{exam.title}</h1>
+             <div className="flex items-center gap-4 mt-2">
+                 <span className="flex items-center gap-2 bg-surface-container-low px-4 py-1.5 rounded-full text-xs font-black">
+                     <TeacherIcon className="size-4 text-primary" />
+                     المعلم: {exam.teacherName}
+                 </span>
+                 <span className="flex items-center gap-2 bg-surface-container-low px-4 py-1.5 rounded-full text-xs font-black">
+                     <FileQuestion className="size-4 text-primary" />
+                     {questions.length} سؤال
+                 </span>
+             </div>
+        </div>
         <div className="flex items-center gap-5 bg-on-surface p-6 rounded-[2rem] shadow-2xl ring-4 ring-primary/10">
           <Clock3 className="size-8 text-primary animate-pulse" />
           <div className="flex flex-col">
@@ -298,7 +298,7 @@ export default function DynamicExamPage() {
               </span>
           </div>
         </div>
-      </SectionHeader>
+      </div>
 
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
         <section className="lg:col-span-8 space-y-8">

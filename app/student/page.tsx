@@ -1,8 +1,9 @@
 "use client";
 
 import { useAuth } from "../../context/AuthContext";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import {
   BookOpen,
   CheckCircle2,
@@ -13,7 +14,6 @@ import {
   Medal,
   TrendingUp,
   Bell,
-  AlertCircle,
   ChevronRight,
 } from "lucide-react";
 
@@ -26,29 +26,30 @@ import { StatusBadge } from "../../components/StatusBadge";
 import { SubjectCard } from "../../components/SubjectCard";
 import { EmptyState } from "@/components/EmptyState";
 
-import { examService, ExamDTO, SubjectDTO, ResultDTO } from "../../lib/services/exam.service";
+import { examService } from "../../lib/services/exam.service";
 import { studentService } from "../../lib/services/student.service";
 import { notificationService, AppNotification } from "../../lib/services/notification.service";
 import { useFetch } from "../../lib/hooks/useFetch";
 
-export default function StudentDashboardPage() {
+function StudentDashboardContent() {
   const { role, loading: authLoading, user, profile } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   const [visibleSubjectsCount, setVisibleSubjectsCount] = useState(4);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   // Professional Data Fetching Hooks
-  const { data: subjects, isLoading: subjectsLoading, error: subjectsError } = useFetch(
+  const { data: subjects, isLoading: subjectsLoading } = useFetch(
     () => examService.getSubjects()
   );
 
   const fetchCategorized = useCallback(() => {
     if (!user?.uid) return Promise.resolve({ upcoming: [], completed: [] });
     return studentService.getCategorizedExams(user.uid);
-  }, [user?.uid]);
+  }, [user]); // Align with React Compiler inference
 
-  const { data: examsData, isLoading: examsLoading, error: examsError } = useFetch(
+  const { data: examsData, isLoading: examsLoading } = useFetch(
     fetchCategorized,
     [user?.uid]
   );
@@ -78,8 +79,7 @@ export default function StudentDashboardPage() {
   // Filtering Logic
   const filteredExams = useMemo(() => {
     if (!examsData) return { upcoming: [], completed: [] };
-    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const subjectFilter = searchParams?.get("subjectId");
+    const subjectFilter = searchParams.get("subjectId");
 
     if (!subjectFilter) return examsData;
 
@@ -87,7 +87,7 @@ export default function StudentDashboardPage() {
       upcoming: examsData.upcoming.filter(e => e.subjectId === subjectFilter),
       completed: examsData.completed.filter(e => e.subjectId === subjectFilter),
     };
-  }, [examsData]);
+  }, [examsData, searchParams]);
 
   // UI Handlers
   const handleLoadMore = () => setVisibleSubjectsCount(prev => prev + 4);
@@ -131,11 +131,12 @@ export default function StudentDashboardPage() {
             </div>
 
             <div className="w-full md:w-2/5 relative">
-              <div className="aspect-[4/3] overflow-hidden rounded-[3rem] shadow-2xl ring-1 ring-border/50 -rotate-3 hover:rotate-0 transition-all duration-700 group">
-                <img
+              <div className="aspect-[4/3] overflow-hidden rounded-[3rem] shadow-2xl ring-1 ring-border/50 -rotate-3 hover:rotate-0 transition-all duration-700 group relative">
+                <Image
                   src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1200&auto=format&fit=crop"
                   alt="Student success environment"
-                  className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
               </div>
             </div>
@@ -166,7 +167,7 @@ export default function StudentDashboardPage() {
           <section className="space-y-6">
              <SectionHeader title="المسار القادم" description="جدول الاختبارات المجدولة بانتظارك.">
                 <div className="flex items-center gap-3">
-                   {typeof window !== 'undefined' && new URLSearchParams(window.location.search).has("subjectId") && (
+                   {searchParams.has("subjectId") && (
                      <Button 
                         variant="ghost" 
                         size="sm" 
@@ -257,7 +258,7 @@ export default function StudentDashboardPage() {
                       icon={getSubjectIcon(s.title)}
                       primaryAction="عرض تفاصيل المادة"
                       onActionClick={() => router.push(`/student/subjects/${s.id}`)}
-                      badgeCount={s.examsCount}
+                      examCount={s.examsCount}
                     />
                   ))}
                 </div>
@@ -367,5 +368,23 @@ export default function StudentDashboardPage() {
         </aside>
       </div>
     </div>
+  );
+}
+
+export default function StudentDashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-12 py-10">
+        <Skeleton className="h-64 rounded-[2.5rem]" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Skeleton className="h-32 rounded-3xl" />
+          <Skeleton className="h-32 rounded-3xl" />
+          <Skeleton className="h-32 rounded-3xl" />
+          <Skeleton className="h-32 rounded-3xl" />
+        </div>
+      </div>
+    }>
+      <StudentDashboardContent />
+    </Suspense>
   );
 }

@@ -5,10 +5,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import {
-  BarChart3,
   CalendarClock,
   Download,
-  FileText,
   Filter,
   Search,
   Users,
@@ -28,7 +26,7 @@ import { EmptyState } from "../../../components/EmptyState";
 import { useAuth } from "../../../context/AuthContext";
 
 // New Services
-import { examService, ResultDTO } from "../../../lib/services/exam.service";
+import { examService } from "../../../lib/services/exam.service";
 import { useFetch } from "../../../lib/hooks/useFetch";
 import { handleError } from "../../../lib/utils/error-handler";
 

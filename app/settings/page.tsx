@@ -25,8 +25,8 @@ import {
 import { useUpdateProfile } from "../../components/hooks/useUpdateProfile";
 import { useChangePassword } from "../../components/hooks/useChangePassword";
 import { useDeleteAccount } from "../../components/hooks/useDeleteAccount";
-import { userService } from "../../lib/services/user.service";
 import { auth } from "../../lib/firebase";
+import Image from "next/image";
 
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -57,6 +57,11 @@ export default function SettingsPage() {
   
   const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null);
 
+  const showFeedback = (type: "success" | "error", text: string) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage(null), 5000);
+  };
+
   const { updateProfile, loading: profileLoading } = useUpdateProfile(async () => {
     await refreshProfile();
     setProfileOpen(false);
@@ -85,11 +90,6 @@ export default function SettingsPage() {
       profileForm.reset({ name: profile.name });
     }
   }, [profile, profileForm]);
-
-  const showFeedback = (type: "success" | "error", text: string) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage(null), 5000);
-  };
 
   const handleLogout = async () => {
     await auth.signOut();
@@ -134,7 +134,7 @@ export default function SettingsPage() {
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-muted bg-muted flex items-center justify-center relative">
                 {profile?.photoURL ? (
-                  <img src={profile.photoURL} alt={profile.name} className="w-full h-full object-cover" />
+                  <Image src={profile.photoURL} alt={profile.name} fill className="object-cover" />
                 ) : (
                   <UserIcon className="w-12 h-12 text-muted-foreground" />
                 )}
@@ -261,7 +261,7 @@ export default function SettingsPage() {
                 setPasswordOpen(false);
                 passwordForm.reset();
                 showFeedback("success", "تم تغيير كلمة المرور بنجاح");
-              } catch (err: any) {
+              } catch (err) {
                 console.error(err);
                 showFeedback("error", "كلمة المرور الحالية غير صحيحة أو حدث خطأ.");
               }
@@ -302,7 +302,7 @@ export default function SettingsPage() {
               try {
                 await deleteAccount(data.password);
                 router.replace("/");
-              } catch (err) {
+              } catch {
                 showFeedback("error", "كلمة المرور غير صحيحة.");
               }
             })}

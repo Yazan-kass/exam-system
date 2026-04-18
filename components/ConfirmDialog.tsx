@@ -47,7 +47,7 @@ export function ConfirmDialog({
           <LoadingButton
             onClick={onConfirm}
             loading={loading}
-            variant={variant === "destructive" ? "default" : (variant as any)}
+            variant={variant === "destructive" ? "default" : variant}
             className={variant === "destructive" ? "bg-destructive hover:bg-destructive/90 text-white" : ""}
           >
             {confirmLabel}

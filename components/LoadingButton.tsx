@@ -31,7 +31,7 @@ export function LoadingButton({
         variant === "secondary" ? "bg-secondary text-white hover:bg-green-800" : (variant === "outline" ? "" : "bg-gradient-to-br from-primary to-blue-700 text-white hover:shadow-lg"),
         className
       )}
-      {...(props as any)}
+      {...props}
     >
       {loading ? (
         <div className="flex items-center justify-center gap-2">

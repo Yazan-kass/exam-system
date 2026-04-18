@@ -3,19 +3,21 @@ export class AppError extends Error {
     public message: string,
     public code: string = "UNKNOWN_ERROR",
     public statusCode: number = 500,
-    public originalError?: any
+    public originalError?: unknown
   ) {
     super(message);
     this.name = "AppError";
   }
 }
 
-export const handleError = (error: any): AppError => {
+export const handleError = (error: unknown): AppError => {
   if (error instanceof AppError) return error;
 
+  const err = error as { code?: string; message?: string };
+
   // Firebase Auth Errors
-  if (error.code?.startsWith("auth/")) {
-    switch (error.code) {
+  if (err.code?.startsWith("auth/")) {
+    switch (err.code) {
       case "auth/user-not-found":
         return new AppError("المستخدم غير موجود", "USER_NOT_FOUND", 404, error);
       case "auth/wrong-password":
@@ -28,7 +30,7 @@ export const handleError = (error: any): AppError => {
   }
 
   // Firestore Errors
-  if (error.code?.startsWith("permission-denied")) {
+  if (err.code?.startsWith("permission-denied")) {
     return new AppError("ليس لديك صلاحية للقيام بهذا الإجراء", "PERMISSION_DENIED", 403, error);
   }
 

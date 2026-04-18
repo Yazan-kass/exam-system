@@ -2,7 +2,7 @@
 
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   BarChart3,
   BookOpen,
@@ -11,9 +11,6 @@ import {
   Plus,
   CalendarClock,
   History,
-  Trash2,
-  Edit2,
-  Loader2,
   AlertCircle,
   LayoutDashboard,
 } from "lucide-react";
@@ -22,8 +19,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Input } from "../../components/ui/input";
 import { LoadingButton } from "../../components/LoadingButton";
 import { StatCard } from "../../components/StatCard";
-import { SectionHeader } from "../../components/SectionHeader";
-import { StatusBadge } from "../../components/StatusBadge";
 import { SubjectCard } from "../../components/SubjectCard";
 import { EmptyState } from "../../components/EmptyState";
 import { Button } from "../../components/ui/button";
@@ -38,7 +33,7 @@ import {
 } from "../../components/ui/dialog";
 import { Label } from "../../components/ui/label";
 
-import { examService, SubjectDTO, ExamDTO, QuestionDTO } from "../../lib/services/exam.service";
+import { examService, SubjectDTO } from "../../lib/services/exam.service";
 import { useFetch } from "../../lib/hooks/useFetch";
 import { handleError } from "../../lib/utils/error-handler";
 import { collection, getDocs, query, where } from "firebase/firestore";
@@ -60,12 +55,12 @@ export default function TeacherDashboard() {
     () => examService.getSubjects()
   );
 
-  const { data: exams, isLoading: examsLoading, refetch: refetchExams } = useFetch(
+  const { data: exams, isLoading: examsLoading } = useFetch(
     () => user?.uid ? examService.getExams(user.uid) : Promise.resolve([]),
     [user?.uid]
   );
 
-  const { data: questions, isLoading: questionsLoading } = useFetch(
+  const { data: questions } = useFetch(
     () => examService.getQuestions()
   );
 
@@ -339,6 +334,7 @@ export default function TeacherDashboard() {
                           isTeacher={true}
                           onEdit={() => openEditSubject(subject)}
                           onDelete={() => handleDeleteSubject(subject.id, subject.title)}
+                          primaryAction="عرض تفاصيل المادة"
                         />
                       );
                     })}

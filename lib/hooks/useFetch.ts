@@ -13,7 +13,7 @@ interface FetchState<T> {
  */
 export function useFetch<T>(
   fetchFn: () => Promise<T>,
-  dependencies: any[] = []
+  dependencies: unknown[] = []
 ) {
   const [state, setState] = useState<FetchState<T>>({
     data: null,

@@ -9,22 +9,18 @@ export function useTimer(initialSeconds: number, onEnd: () => void) {
   const stopTimer = useCallback(() => setIsActive(false), []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    if (!isActive || timeLeft <= 0) return;
 
-    if (isActive && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            onEnd();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else if (timeLeft === 0) {
-      setIsActive(false);
-    }
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setIsActive(false);
+          onEnd();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [isActive, timeLeft, onEnd]);

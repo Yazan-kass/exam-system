@@ -120,6 +120,7 @@ export default function StudentSubjectsPage() {
                   onActionClick={() => router.push(`/student/subjects/${s.id}`)}
                   examCount={s.examsCount}
                   questionCount={0}
+                  primaryAction="عرض تفاصيل المادة"
               />
             ))}
           </div>

@@ -4,6 +4,7 @@ import { LoadingButton } from "./LoadingButton";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authService } from "../lib/services/auth.service";
+import { handleError } from "../lib/utils/error-handler";
 import { Role } from "../lib/services/user.service";
 
 interface AuthSocialProps {
@@ -29,9 +30,10 @@ export function AuthSocial({ role, mode = "login", onClick, loading: externalLoa
     try {
       const { profile } = await authService.signInWithGoogle(role);
       router.push(`/${profile.role}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(err.message || "حدث خطأ أثناء تسجيل الدخول عبر Google");
+      const appErr = handleError(err);
+      alert(appErr.message || "حدث خطأ أثناء تسجيل الدخول عبر Google");
     } finally {
       setInternalLoading(false);
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Card, CardContent } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import {
@@ -23,7 +23,7 @@ import { Input } from "../../../components/ui/input";
 // New Services
 import { examService, ResultDTO } from "../../../lib/services/exam.service";
 
-export default function ResultsPage() {
+function ResultsContent() {
   const router = useRouter();
   const { user, role, loading: authLoading } = useAuth();
   const [results, setResults] = useState<ResultDTO[]>([]);
@@ -269,3 +269,17 @@ export default function ResultsPage() {
     </div>
   );
 }
+
+export default function ResultsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="size-16 border-4 border-secondary border-t-transparent rounded-full animate-spin" />
+        <p className="text-xl font-bold text-on-surface-variant">جاري التحميل...</p>
+      </div>
+    }>
+      <ResultsContent />
+    </Suspense>
+  );
+}
+

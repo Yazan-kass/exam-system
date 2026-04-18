@@ -12,8 +12,6 @@ import {
   Filter,
   Trash2,
   Edit2,
-  FileText,
-  TrendingUp,
   ArrowLeft,
   ChevronDown,
   BookOpen,

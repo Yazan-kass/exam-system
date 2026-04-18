@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState, useEffect } from "react";
 import { useFetch } from "@/lib/hooks/useFetch";
 import { useTimer } from "@/components/hooks/useTimer";
 import { examService } from "@/lib/services/exam.service";
@@ -39,6 +39,13 @@ export function useExam(examId: string, userId: string) {
     // Timer handles stopping at 0 autonomously
   });
 
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   // 4. Derived Status Logic (Reactive to both Time and Database records)
   const status = useMemo(() => {
     if (isLoading) return "loading";
@@ -47,7 +54,6 @@ export function useExam(examId: string, userId: string) {
     // A. Submission record in DB is the absolute source of truth
     if (attempt) return "submitted";
 
-    const now = Date.now();
     const startTime = new Date(exam.startTime).getTime();
     const endTimeVal = new Date(exam.endTime).getTime();
 
@@ -58,7 +64,7 @@ export function useExam(examId: string, userId: string) {
     if (now > endTimeVal || (endTimeVal > 0 && timeLeft === 0)) return "ended";
 
     return "active";
-  }, [isLoading, exam, attempt, timeLeft]);
+  }, [isLoading, exam, attempt, timeLeft, now]);
 
   // Unified refetch capability
   const refetch = useCallback(() => {
