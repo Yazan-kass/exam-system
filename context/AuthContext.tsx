@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { auth } from "../lib/firebase";
+import { getFirebase } from "../lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { userService, Role, AppUserProfile } from "../lib/services/user.service";
 
@@ -30,33 +30,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const refreshProfile = async () => {
-    if (auth.currentUser) {
-      try {
-        const updatedProfile = await userService.getProfile(auth.currentUser.uid);
-        setProfile(updatedProfile);
-        setRole(updatedProfile?.role || null);
-      } catch (err) {
-        console.error("Error refreshing profile:", err);
-      }
+    const { auth } = getFirebase();
+    if (!auth?.currentUser) return;
+
+    try {
+      const updatedProfile = await userService.getProfile(auth.currentUser.uid);
+      setProfile(updatedProfile);
+      setRole(updatedProfile?.role || null);
+    } catch (err) {
+      console.error("Error refreshing profile:", err);
     }
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (authUser: User | null) => {
+    const { auth } = getFirebase();
+    if (!auth) return;
+
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
       setUser(authUser);
+
       if (authUser) {
         try {
           const userProfile = await userService.getProfile(authUser.uid);
           setProfile(userProfile);
           setRole(userProfile?.role || null);
         } catch (err) {
-          console.error("Error fetching profile on auth change:", err);
+          console.error("Error fetching profile:", err);
           setRole(null);
         }
       } else {
         setProfile(null);
         setRole(null);
       }
+
       setLoading(false);
     });
 
