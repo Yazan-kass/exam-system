@@ -8,7 +8,8 @@ import {
   signOut,
   User
 } from "firebase/auth";
-import { userService, Role, AppUserProfile } from "./user.service";
+import { userService } from "./user.service";
+import type { Role, AppUserProfile } from "../types/user";
 import { Timestamp } from "firebase/firestore";
 
 export const authService = {

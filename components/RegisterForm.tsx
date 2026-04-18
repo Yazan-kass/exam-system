@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "../lib/services/auth.service";
-import { Role } from "../lib/services/user.service";
+import { Role } from "../lib/types/user";
 import { FormCard } from "./FormCard";
 import { FormInput } from "./FormInput";
 import { LoadingButton } from "./LoadingButton";

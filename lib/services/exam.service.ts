@@ -1,4 +1,3 @@
-// lib/services/exam.service.ts
 import { db } from "../firebase";
 import { 
   collection, 

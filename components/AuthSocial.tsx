@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authService } from "../lib/services/auth.service";
 import { handleError } from "../lib/utils/error-handler";
-import { Role } from "../lib/services/user.service";
+import type { Role } from "../lib/types/user";
 
 interface AuthSocialProps {
   role: Role;
